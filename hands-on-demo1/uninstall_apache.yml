@@ -1,0 +1,15 @@
+---
+- name: Uninstall Apache and stop service on web servers
+  hosts: webservers
+  become: yes  # Run tasks with sudo (privilege escalation)
+  tasks:
+    - name: Ensure Apache is stopped and disabled
+      service:
+        name: httpd
+        state: stopped
+        enabled: no
+
+    - name: Uninstall Apache (httpd)
+      yum:
+        name: httpd
+        state: absent
