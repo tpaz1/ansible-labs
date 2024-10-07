@@ -64,7 +64,7 @@ SSH into the Ansible controller instance:
 
 ```bash
 # copy the ssh private key to be able to connect to the worker machines
-scp -i <private-key> <private-key> ec2-user<public-ip>:/home/ec2-user/
+scp -i <private-key> <private-key> ec2-user@<public-ip>:/home/ec2-user/
 # connect to the controller machine
 ssh -i <private-key> ec2-user@<public-ip>
 ```

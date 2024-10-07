@@ -2,9 +2,9 @@ events {}
 
 http {
     upstream webservers {
-        server ansible-worker-1;
-        server ansible-worker-2;
-        server ansible-worker-3;
+        server {{ ansible-worker-1.ansible_hostname }};
+        server {{ ansible-worker-2.ansible_hostname }};
+        server {{ ansible-worker-3.ansible_hostname }};
     }
 
     server {
