@@ -1,0 +1,25 @@
+---
+- name: Configure Nginx Load Balancer
+  hosts: nginx
+  become: yes  # Run tasks with sudo (privilege escalation)
+  tasks:
+    - name: Install Nginx
+      yum:
+        name: nginx
+        state: present
+
+    - name: Start and enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configure Nginx to load balance
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted

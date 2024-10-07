@@ -1,0 +1,7 @@
+[webservers]
+ansible-worker-1 ansible_host=<public-ip>
+ansible-worker-2 ansible_host=<public-ip>
+ansible-worker-3 ansible_host=<public-ip>
+
+[nginx]
+nginx-load-balancer ansible_host=<public-ip>

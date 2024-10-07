@@ -1,0 +1,4 @@
+[webservers]
+target1 ansible_host=<private-ip>
+target2 ansible_host=<private-ip>
+target3 ansible_host=<private-ip>

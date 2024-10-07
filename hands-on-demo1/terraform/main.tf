@@ -14,6 +14,13 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["0.0.0.0/0"]  # Allows SSH from anywhere
   }
 
+   ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Allows HTTP from anywhere
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -35,6 +42,7 @@ resource "aws_instance" "ansible_controller" {
             sudo dnf install -y git || { echo 'Git installation failed' > /tmp/git_install_error.log; exit 1; }
             # Clone the public repository
             git clone https://github.com/tpaz1/ansible-labs.git /home/ec2-user/ansible-labs || { echo 'Git clone failed' > /tmp/git_clone_error.log; exit 1; }
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/ansible-labs
             EOF
 
   tags = {
