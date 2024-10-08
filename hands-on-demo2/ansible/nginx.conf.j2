@@ -1,10 +1,12 @@
-events {}
+events {
+    worker_connections 1024;
+}
 
 http {
     upstream webservers {
-        server {{ ansible-worker-1.ansible_hostname }};
-        server {{ ansible-worker-2.ansible_hostname }};
-        server {{ ansible-worker-3.ansible_hostname }};
+        {% for host in groups['webservers'] %}
+        server {{ hostvars[host].ansible_host }};
+        {% endfor %}
     }
 
     server {

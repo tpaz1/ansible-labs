@@ -23,3 +23,7 @@
       service:
         name: nginx
         state: restarted
+
+    - name: Allow Nginx to make network connections (SELinux)
+      become: yes  # Ensure the task runs with sudo
+      command: setsebool -P httpd_can_network_connect 1
