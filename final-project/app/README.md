@@ -98,83 +98,17 @@ sudo systemctl enable httpd
 4. Move code
 
 ```
-sudo cp -r ansible-labs/final-project/app/* /var/www/html/
+sudo cp -r /home/ec2-user/ansible-labs/final-project/app/ /var/www/html/
 ```
 
-<!-- 5. Update index.php
-
-Update [index.php](https://github.com/kodekloudhub/learning-app-ecommerce/blob/13b6e9ddc867eff30368c7e4f013164a85e2dccb/index.php#L107) file to connect to the right database server. In this case `localhost` since the database is on the same server.
-
-```
-sudo sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
-
-              <?php
-                        $link = mysqli_connect('172.20.1.101', 'ecomuser', 'ecompassword', 'ecomdb');
-                        if ($link) {
-                        $res = mysqli_query($link, "select * from products;");
-                        while ($row = mysqli_fetch_assoc($res)) { ?>
-```
+5. Update index.php
 
 > ON a multi-node setup remember to provide the IP address of the database server here.
 ```
-sudo sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
+sudo sed -i 's/localhost/<IP>/g' /var/www/html/index.php
 ```
--->
 
-5. Create and Configure the `.env` File
-
-   Create an `.env` file in the root of your project folder.
-
-   ```sh
-   cat > /var/www/html/.env <<-EOF
-   DB_HOST=localhost
-   DB_USER=ecomuser
-   DB_PASSWORD=ecompassword
-   DB_NAME=ecomdb
-   EOF
-
-6. Update `index.php`
-
-   Update the `index.php` file to load the environment variables from the `.env` file and use them to connect to the database.
-
-   ```php
-   <?php
-   // Function to load environment variables from a .env file
-   function loadEnv($path)
-   {
-       if (!file_exists($path)) {
-           return false;
-       }
-
-       $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-       foreach ($lines as $line) {
-           if (strpos(trim($line), '#') === 0) {
-               continue;
-           }
-
-           list($name, $value) = explode('=', $line, 2);
-           $name = trim($name);
-           $value = trim($value);
-           putenv(sprintf('%s=%s', $name, $value));
-       }
-       return true;
-   }
-
-   // Load environment variables from .env file
-   loadEnv(__DIR__ . '/.env');
-
-   // Retrieve the database connection details from environment variables
-   $dbHost = getenv('DB_HOST');
-   $dbUser = getenv('DB_USER');
-   $dbPassword = getenv('DB_PASSWORD');
-   $dbName = getenv('DB_NAME');
-
-   ?>
-
-   ON a multi-node setup, remember to provide the IP address of the database server in the .env file.
-
-
-7. Test
+6. Test
 
 ```
 curl http://localhost
