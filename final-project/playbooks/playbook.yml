@@ -63,28 +63,26 @@
     
     - name: Create custom MySQL config file
       copy:
-        content: |
-          [mysqld]
-          skip-grant-tables
+        src: files/my.cnf
         dest: /etc/my.cnf
         owner: root
         group: root
         mode: '0644'
 
-    # - name: Create MySQL user and grant privileges
-    #   shell: |
-    #     sudo mysql --defaults-file=/etc/my.cnf -e "CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword'; 
-    #     GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost'; 
-    #     FLUSH PRIVILEGES;"
+    - name: Create MySQL user and grant privileges
+      shell: |
+        sudo mysql --defaults-file=/etc/my.cnf -e "CREATE USER '{{ dbuser }}'@'localhost' IDENTIFIED BY '{{ dbpassword }}'; 
+        GRANT ALL PRIVILEGES ON *.* TO '{{ dbuser }}'@'localhost'; 
+        FLUSH PRIVILEGES;"
       
     - name: Create Application Database
       mysql_db:
         name: "{{ dbname }}"
         state: present
         login_host: localhost
-        login_port: 3306
-        login_user: ecomuser
-        login_password: ecompassword
+        login_port: "{{ mysql_port }}"
+        login_user: "{{ dbuser }}"
+        login_password: "{{ dbpassword }}"
  
     # - name: Create Application DB User
     #   mysql_user:
