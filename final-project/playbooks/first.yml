@@ -1,0 +1,155 @@
+---
+- name: Deploy LAMP stack application
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install common dependencies
+      yum:
+        name:
+          - python3-libselinux
+          - python3-libsemanage
+          - firewalld
+        state: installed
+
+    - name: Install Python3 and Pip
+      yum:
+        name:
+          - python3
+          - python3-pip
+        state: installed
+
+    # Install pymysql before database tasks
+    - name: Install pymysql
+      pip:
+        name: pymysql
+        executable: pip3
+
+# Database tasks
+- name: Configure Database
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install MariaDB package
+      yum:
+        name:
+          - mariadb-server
+        state: installed
+
+    - name: Create MySQL configuration file
+      copy:
+        src: files/my.cnf
+        dest: /root/.my.cnf
+        owner: root
+        mode: 0600
+
+    - name: Start MariaDB Service
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Start firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Insert firewalld rule for MySQL
+      ansible.posix.firewalld:  # Ensure you have the correct module for firewalld
+        port: "{{ mysql_port }}/tcp"
+        permanent: true
+        state: enabled
+        immediate: yes
+    
+    - name: Create custom MySQL config file
+      copy:
+        content: |
+          [mysqld]
+          skip-grant-tables
+        dest: /etc/my.cnf
+        owner: root
+        group: root
+        mode: '0644'
+
+    # - name: Create MySQL user and grant privileges
+    #   shell: |
+    #     sudo mysql --defaults-file=/etc/my.cnf -e "CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword'; 
+    #     GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost'; 
+    #     FLUSH PRIVILEGES;"
+      
+    - name: Create Application Database
+      mysql_db:
+        name: "{{ dbname }}"
+        state: present
+        login_host: localhost
+        login_port: 3306
+        login_user: ecomuser
+        login_password: ecompassword
+ 
+    # - name: Create Application DB User
+    #   mysql_user:
+    #     name: "{{ dbuser }}"
+    #     password: "{{ dbpassword }}"
+    #     priv: "*.*:ALL"
+    #     host: "172.20.1.100"
+    #     state: present
+
+    - name: Move db-load-script to db host
+      copy:
+        src: files/db-load-script.sql
+        dest: /tmp/db-load-script.sql
+
+    - name: Load Inventory Data
+      shell: mysql -f -u{{ dbuser }} -p{{ dbpassword }} {{ dbname }} < /tmp/db-load-script.sql
+
+# Web server tasks
+- name: Configure Web Server
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install httpd and PHP
+      yum:
+        name:
+          - httpd
+          - php
+          - php-mysqlnd
+        state: present
+
+    - name: Install web role specific dependencies
+      yum:
+        name: git
+        state: installed
+
+    - name: Start firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Insert firewalld rule for httpd
+      ansible.posix.firewalld:
+        port: "{{ httpd_port }}/tcp"
+        permanent: true
+        state: enabled
+        immediate: yes
+
+    - name: Set index.php as the default page
+      replace:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: 'DirectoryIndex index.html'
+        replace: 'DirectoryIndex index.php'
+
+    - name: Start httpd service
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Copy the app from the local controller to the target machine
+      copy:
+        src: /home/ec2-user/ansible-labs/final-project/app/
+        dest: /var/www/html/
+        mode: '0755'
+        owner: root
+        group: root
+        remote_src: no
